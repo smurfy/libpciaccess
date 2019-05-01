@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/mman.h>
 #include <string.h>
 #include <strings.h>
 
@@ -37,6 +36,7 @@
 #if defined(__GNU__)
 
 #include <sys/io.h>
+#include <sys/mman.h>
 
 static int
 x86_enable_io(void)
@@ -57,6 +57,7 @@ x86_disable_io(void)
 #elif defined(__GLIBC__)
 
 #include <sys/io.h>
+#include <sys/mman.h>
 
 static int
 x86_enable_io(void)
@@ -74,7 +75,7 @@ x86_disable_io(void)
     return errno;
 }
 
-#elif defined(__CYGWIN__)
+#elif defined(__CYGWIN__) || defined(__MINGW__)
 
 #include <windows.h>
 
@@ -459,6 +460,23 @@ pci_device_x86_read_rom(struct pci_device *dev, void *buffer)
 	return ENOSYS;
     }
 
+#if defined(__CYGWIN__) || defined(__MINGW__)
+
+    tagPhysStruct phys;
+
+    phys.pvPhysAddress        = (DWORD64)(DWORD32)0xc0000;
+    phys.dwPhysMemSizeInBytes = dev->rom_size;
+
+    bios = (PDWORD)MapPhysToLin(&phys);
+    if (bios == NULL) {
+        UnmapPhysicalMemory(&phys);
+        return EFAULT;
+    }
+
+    memcpy(buffer, bios, dev->rom_size);
+
+    UnmapPhysicalMemory(&phys);
+#else
     memfd = open("/dev/mem", O_RDONLY | O_CLOEXEC);
     if (memfd == -1)
 	return errno;
@@ -473,7 +491,7 @@ pci_device_x86_read_rom(struct pci_device *dev, void *buffer)
 
     munmap(bios, dev->rom_size);
     close(memfd);
-
+#endif
     return 0;
 }
 
@@ -600,7 +618,7 @@ pci_device_x86_probe(struct pci_device *dev)
     return 0;
 }
 
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__) || defined(__MINGW__)
 
 static int
 pci_device_x86_map_range(struct pci_device *dev,

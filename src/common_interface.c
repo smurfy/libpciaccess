@@ -54,6 +54,13 @@
 # define HTOLE_32(x)   (x)
 #endif /* linux */
 
+#elif defined(__MINGW__)
+
+# define LETOH_16(x)   (x)
+# define HTOLE_16(x)   (x)
+# define LETOH_32(x)   (x)
+# define HTOLE_32(x)   (x)
+
 #elif defined(__sun)
 
 #include <sys/byteorder.h>

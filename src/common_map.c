@@ -26,8 +26,11 @@
 #endif
 
 #include <sys/types.h>
-#include <sys/mman.h>
 #include <errno.h>
+
+#ifndef __MINGW__
+#include <sys/mman.h>
+#endif
 
 #include "pciaccess.h"
 #include "pciaccess_private.h"
@@ -54,5 +57,9 @@ _pci_hidden int
 pci_device_generic_unmap_range(struct pci_device *dev,
 			       struct pci_device_mapping *map)
 {
+#ifdef __MINGW__
+    return EROFS;
+#else
     return (munmap(map->memory, map->size) == -1) ? errno : 0;
+#endif
 }
