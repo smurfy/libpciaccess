@@ -91,6 +91,9 @@ int __deprecated pci_device_unmap_region(struct pci_device *dev,
 int pci_device_map_range(struct pci_device *dev, pciaddr_t base,
     pciaddr_t size, unsigned map_flags, void **addr);
 
+int pci_device_map_range_raw(struct pci_device *dev, pciaddr_t base,
+    pciaddr_t size, unsigned map_flags, void **addr);
+
 int pci_device_unmap_range(struct pci_device *dev, void *memory,
     pciaddr_t size);
 

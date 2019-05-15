@@ -242,6 +242,33 @@ int pci_device_map_memory_range(struct pci_device *dev,
 /**
  * Map the specified memory range so that it can be accessed by the CPU.
  *
+ * Maps the specified memory range for access by the processor.
+ * Its region independent, can map anything.
+ *
+ * \param dev          Device whose memory region is to be mapped.
+ * \param base         Base address of the range to be mapped.
+ * \param size         Size of the range to be mapped.
+ * \param map_flags    Flag bits controlling how the mapping is accessed.
+ * \param addr         Location to store the mapped address.
+ *
+ * \return
+ * Zero on success or an \c errno value on failure.
+ *
+ * \sa pci_device_unmap_range
+ */
+int
+pci_device_map_range_raw(struct pci_device *dev, pciaddr_t base,
+                     pciaddr_t size, unsigned map_flags,
+                     void **addr)
+{
+    if (!pci_sys->methods->map_legacy)
+        return ENOSYS;
+
+    return pci_sys->methods->map_legacy(dev, base, size, map_flags, addr);
+}
+/**
+ * Map the specified memory range so that it can be accessed by the CPU.
+ *
  * Maps the specified memory range for access by the processor.  The pointer
  * to the mapped region is stored in \c addr.  In addition, the
  * \c pci_mem_region::memory pointer for the BAR will be updated.
